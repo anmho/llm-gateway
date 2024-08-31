@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="eng">
+<head>
+
+    <title>
+        Server Side Events Demo
+    </title>
+
+</head>
+<body>
+<div id="sse-data"></div>
+
+<h1>Shakespeare generation</h1>
+<script>
+    const eventSource = new EventSource('http://localhost:8080/chat?model=gemini-1.5-flash');
+    // const eventSource = new EventSource('http://localhost:8080/chat?model=gpt3.5');
+
+    eventSource.onmessage = (event) => {
+        const dataElement = document.querySelector('#sse-data');
+        console.log(event.data)
+        dataElement.innerHTML += event.data;
+    };
+</script>
+
+
+</body>
+
+
+</html>
+

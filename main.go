@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/anmho/prism/api"
 	"github.com/anmho/prism/scope"
-	"github.com/joho/godotenv"
+	"github.com/caarlos0/env/v11"
+	"github.com/google/generative-ai-go/genai"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/labstack/echo/v4"
+	"github.com/sashabaranov/go-openai"
+	"google.golang.org/api/option"
+	"log"
 	"log/slog"
 	"net/http"
 )
@@ -15,21 +20,30 @@ const (
 	port = 8080
 )
 
+type Config struct {
+	OpenAIKey   string `env:"OPENAI_KEY"`
+	GoogleAIKey string `env:"GOOGLE_AI_KEY"`
+}
+
 func main() {
-	godotenv.Load(".env")
-	mux := echo.New()
+	var config Config
 
-	mux.HTTPErrorHandler = func(err error, c echo.Context) {
-		scope.GetLogger().Error("error: ", slog.Any("error", err))
+	err := env.Parse(&config)
+	if err != nil {
+		log.Fatalln(err)
 	}
-	mux.GET("/hello", func(c echo.Context) error {
 
-		msg := "hello"
+	fmt.Printf("config: %+v", config)
+	ctx := context.Background()
+	openaiClient := openai.NewClient(config.OpenAIKey)
 
-		return c.JSON(http.StatusOK, map[string]any{
-			"message": "hello",
-		})
-	})
+	googleClient, err := genai.NewClient(ctx, option.WithAPIKey(config.GoogleAIKey))
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	mux := api.MakeServer(openaiClient, googleClient)
 
 	srv := http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
