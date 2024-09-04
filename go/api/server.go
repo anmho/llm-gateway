@@ -8,6 +8,7 @@ import (
 	"google.golang.org/api/iterator"
 	"io"
 	"log"
+	"log/slog"
 	"net/http"
 )
 
@@ -76,6 +77,8 @@ func handleChatCompletions(openaiClient *openai.Client, googleClient *genai.Clie
 		modelName := r.URL.Query().Get("model")
 		modelType := modelFromString(modelName)
 
+		slog.Info("handling chat compmletion", slog.String("model", modelName))
+
 		ctx := r.Context()
 
 		switch modelType {
@@ -99,13 +102,11 @@ func handleChatCompletions(openaiClient *openai.Client, googleClient *genai.Clie
 				}
 
 				fmt.Println("Number of response candidates: ", len(resp.Candidates))
-				//for _, cand := range resp.Candidates {
 				for _, part := range resp.Candidates[0].Content.Parts {
 					fmt.Fprintf(w, "data: %s\n\n", part)
 
 					w.(http.Flusher).Flush()
 				}
-				//}
 			}
 
 		case GPT3Dot5:
@@ -149,7 +150,6 @@ func handleChatCompletions(openaiClient *openai.Client, googleClient *genai.Clie
 		}
 		doneChan := r.Context().Done()
 		<-doneChan
-
 	}
 
 }
