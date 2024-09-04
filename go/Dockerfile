@@ -13,6 +13,7 @@ COPY . .
 # Build the Go app using the Makefile
 RUN apk add --no-cache make
 RUN make api
+RUN ls
 
 
 FROM node:22-alpine AS frontend
@@ -29,7 +30,6 @@ COPY ./chat ./chat
 # Build the Web app
 RUN apk add --no-cache make
 RUN make chat
-
 
 # Stage 2: Create a minimal image with just the binary and the static files
 FROM alpine:latest
