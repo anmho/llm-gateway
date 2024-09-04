@@ -13,14 +13,13 @@ COPY . .
 # Build the Go app using the Makefile
 RUN apk add --no-cache make
 RUN make api
-RUN ls
 
 
 FROM node:22-alpine AS frontend
 WORKDIR /app
 
 # Copy the dependencies
-COPY ./chat/package.json ./chat/package-lock.json ./chat/
+COPY ./chat/package.json ./chat/package-lock.json /app/chat/
 RUN npm --prefix ./chat i
 
 
