@@ -15,7 +15,7 @@ func MakeServer(openaiClient *openai.Client, googleClient *genai.Client) http.Ha
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /chat", handleChatCompletions(openaiClient, googleClient))
-	mux.Handle("GET /", http.FileServer(http.Dir("./static")))
+	//mux.Handle("GET /", http.FileServer(http.Dir("./static")))
 	return mux
 }
 
