@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"github.com/anmho/prism/api"
 	"github.com/anmho/prism/scope"
 	"github.com/caarlos0/env/v11"
 	"github.com/google/generative-ai-go/genai"
-	_ "github.com/joho/godotenv/autoload"
+	"github.com/joho/godotenv"
 	"github.com/sashabaranov/go-openai"
 	"google.golang.org/api/option"
 	"log"
@@ -21,12 +22,24 @@ const (
 )
 
 type Config struct {
-	OpenAIKey   string `env:"OPENAI_KEY"`
+	OpenAIKey   string `env:"OPENAI_API_KEY"`
 	GoogleAIKey string `env:"GOOGLE_AI_KEY"`
+	Port        int    `env:"PORT"`
 }
 
 func main() {
 	var config Config
+
+	stage := flag.String("stage", "prod", "-stage {development|prod}")
+	flag.Parse()
+	log.Printf("stage: %s\n", *stage)
+
+	if *stage == "development" {
+		err := godotenv.Load(".env")
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
 
 	err := env.Parse(&config)
 	if err != nil {
@@ -35,6 +48,7 @@ func main() {
 
 	fmt.Printf("config: %+v", config)
 	ctx := context.Background()
+
 	openaiClient := openai.NewClient(config.OpenAIKey)
 
 	googleClient, err := genai.NewClient(ctx, option.WithAPIKey(config.GoogleAIKey))

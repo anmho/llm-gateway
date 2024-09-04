@@ -93,7 +93,7 @@ func handleChatCompletions(openaiClient *openai.Client, googleClient *genai.Clie
 					}
 
 					if err != nil {
-						fmt.Printf("\nStream error: %v\n", err)
+						fmt.Printf("\nStream error: %s\n", err.Error())
 						break
 					}
 				}

@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy go.mod and go.sum files to the workspace
 COPY go.mod go.sum ./
-COPY ./static ./
+COPY ./static ./static
 
 # Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go mod download
@@ -26,6 +26,7 @@ WORKDIR /root/
 
 # Copy the Pre-built binary file from the builder stage
 COPY --from=builder /app/bin/api .
+COPY --from=builder /app/static ./static
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
