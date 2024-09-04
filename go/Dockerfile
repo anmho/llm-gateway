@@ -15,7 +15,7 @@ RUN apk add --no-cache make
 RUN make api
 
 
-FROM node:22-alpine as frontend
+FROM node:22-alpine AS frontend
 WORKDIR /app
 
 # Copy the dependencies
