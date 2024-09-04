@@ -3,20 +3,21 @@ package api
 import (
 	"errors"
 	"fmt"
-	"github.com/google/generative-ai-go/genai"
-	"github.com/sashabaranov/go-openai"
-	"google.golang.org/api/iterator"
 	"io"
 	"log"
 	"log/slog"
 	"net/http"
+
+	"github.com/google/generative-ai-go/genai"
+	"github.com/sashabaranov/go-openai"
+	"google.golang.org/api/iterator"
 )
 
 func MakeServer(openaiClient *openai.Client, googleClient *genai.Client) http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /chat", handleChatCompletions(openaiClient, googleClient))
-	//mux.Handle("GET /", http.FileServer(http.Dir("./static")))
+	mux.HandleFunc("GET /api/chat", handleChatCompletions(openaiClient, googleClient))
+	mux.Handle("GET /", http.FileServer(http.Dir("./chat/dist")))
 	return mux
 }
 
