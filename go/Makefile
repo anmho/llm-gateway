@@ -14,3 +14,7 @@ clean:
 .PHONY: run
 run: chat api
 	@go run . -stage development
+
+.PHONY:
+image:
+	docker build -t llm-gateway .
