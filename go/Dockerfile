@@ -39,7 +39,7 @@ WORKDIR /root/
 
 # Copy the Pre-built binary file from the builder stage
 COPY --from=builder /app/bin/api .
-COPY --from=frontend /app/chat/dist ./chat/dist
+COPY --from=frontend /app/chat/dist/ ./chat/dist/
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
