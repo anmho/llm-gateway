@@ -59,11 +59,11 @@ export default function App() {
 
     setResponse('');
 
-    const eventSource = new EventSource(
-      `${
-        import.meta.env.VITE_API_URL
-      }/chat?model=${model}&data=${JSON.stringify(data)}`
-    );
+    const url = `${
+      import.meta.env.VITE_API_URL
+    }/chat?model=${model}&data=${JSON.stringify(data)}`;
+    console.log(url);
+    const eventSource = new EventSource(url);
 
     eventSource.onmessage = (e: MessageEvent) => {
       console.log(e.data);
