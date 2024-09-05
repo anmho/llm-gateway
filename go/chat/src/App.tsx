@@ -81,7 +81,6 @@ export default function App() {
   const handleInstructPromptChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     console.log(prompt, e.target.value);
     setInstructPrompt(e.target.value);
-    setPrompt(e.target.value);
   };
   console.log(response);
   return (
