@@ -19,6 +19,9 @@ import (
 func MakeServer(openaiClient *openai.Client, googleClient *genai.Client) http.Handler {
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("GET /api/hello", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("string"))
+	})
 	mux.HandleFunc("GET /api/chat", handleChatCompletions(openaiClient, googleClient))
 	mux.Handle("GET /", http.FileServer(http.Dir("./chat/dist")))
 	return mux
