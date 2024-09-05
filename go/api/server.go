@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/anmho/prism/scope"
 	"io"
 	"log"
 	"log/slog"
 	"net/http"
+
+	"github.com/anmho/prism/scope"
 
 	"github.com/google/generative-ai-go/genai"
 	"github.com/sashabaranov/go-openai"
@@ -62,12 +63,12 @@ func modelFromString(modelName string) Model {
 
 type PromptInstructions struct {
 	Role        string `json:"role"`
-	Instruction string `json:"instructions"`
+	Prompt string `json:"prompt"`
 }
 
 type PromptData struct {
-	Prompt       string `json:"prompt"`
-	Instructions PromptInstructions
+	Prompt       string             `json:"prompt"`
+	Instructions PromptInstructions `json:"instructions"`
 }
 
 type ResponseBlock struct {
@@ -79,18 +80,18 @@ func handleChatCompletions(openaiClient *openai.Client, googleClient *genai.Clie
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		w.Header().Set("Content-Type", "text/event-stream")
-
-		prompt := `
-		You're planning a magical trip to Disneyland Anaheim for a family of four, including two adults and two children aged 7 and 10. 
-		The family is visiting for three days and wants to make the most of their experience, including exploring all the major attractions, 
-		enjoying Disney-themed dining, and making sure they don't miss any must-see shows or parades. 
-
-		They prefer a balanced mix of thrill rides and kid-friendly attractions, and they want to minimize wait times as much as possible. 
-		The family is staying at one of the Disneyland Resort hotels, and they'd like to take advantage of early park entry and any other benefits that come with their stay. 
-		Please create a detailed three-day itinerary, including recommendations for attractions, dining reservations, and tips on the best times to visit each area of the park. 
-		Be sure to include advice on how to navigate the park efficiently and any insider tips that would make the trip extra special. 
-		Feel free to suggest specific themes for each day (e.g., a "Star Wars" day in Galaxy's Edge), and include any seasonal events or limited-time experiences happening during their visit.
-		`
+		//
+		//prompt := `
+		//You're planning a magical trip to Disneyland Anaheim for a family of four, including two adults and two children aged 7 and 10.
+		//The family is visiting for three days and wants to make the most of their experience, including exploring all the major attractions,
+		//enjoying Disney-themed dining, and making sure they don't miss any must-see shows or parades.
+		//
+		//They prefer a balanced mix of thrill rides and kid-friendly attractions, and they want to minimize wait times as much as possible.
+		//The family is staying at one of the Disneyland Resort hotels, and they'd like to take advantage of early park entry and any other benefits that come with their stay.
+		//Please create a detailed three-day itinerary, including recommendations for attractions, dining reservations, and tips on the best times to visit each area of the park.
+		//Be sure to include advice on how to navigate the park efficiently and any insider tips that would make the trip extra special.
+		//Feel free to suggest specific themes for each day (e.g., a "Star Wars" day in Galaxy's Edge), and include any seasonal events or limited-time experiences happening during their visit.
+		//`
 
 		var promptData PromptData
 		err := json.Unmarshal([]byte(r.URL.Query().Get("data")), &promptData)
@@ -98,7 +99,7 @@ func handleChatCompletions(openaiClient *openai.Client, googleClient *genai.Clie
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		prompt = promptData.Prompt
+		//prompt = promptData.Prompt
 		slog.Info("parsing llm prompt data", slog.Any("promptData", promptData))
 
 		modelName := r.URL.Query().Get("model")
@@ -111,7 +112,17 @@ func handleChatCompletions(openaiClient *openai.Client, googleClient *genai.Clie
 		switch modelType {
 		case Gemini1Dot5Flash:
 			model := googleClient.GenerativeModel(Gemini1Dot5Flash.String())
-			iter := model.GenerateContentStream(ctx, genai.Text(prompt))
+
+			iter := model.GenerateContentStream(ctx, genai.Text(
+				fmt.Sprintf(
+					`
+				%s: %s
+				User: %s
+				`,
+					promptData.Instructions.Role, promptData.Instructions.Prompt,
+					promptData.Prompt,
+				),
+			))
 
 			for {
 				resp, err := iter.Next()
@@ -155,7 +166,7 @@ func handleChatCompletions(openaiClient *openai.Client, googleClient *genai.Clie
 				Messages: []openai.ChatCompletionMessage{
 					{
 						Role:    "system",
-						Content: prompt,
+						Content: promptData.Instructions.Prompt,
 					},
 				},
 				Stream: true,
