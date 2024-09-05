@@ -65,6 +65,10 @@ export default function App() {
     console.log(url);
     const eventSource = new EventSource(url);
 
+    eventSource.onerror = (e) => {
+      console.error(e);
+      eventSource.close();
+    };
     eventSource.onmessage = (e: MessageEvent) => {
       console.log(e.data);
       const responseBlock = JSON.parse(e.data);
