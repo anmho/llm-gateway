@@ -1,4 +1,5 @@
-// import Image from 'next/image';
+import Markdown from 'react-markdown';
+
 import { CounterClockwiseClockIcon } from '@radix-ui/react-icons';
 
 import { Button } from './components/ui/button';
@@ -24,8 +25,43 @@ import { TopPSelector } from './components/top-p-selector';
 import { models, types } from './data/models';
 import { presets } from './data/presets';
 import { Card } from './components/ui/card';
+import { ChangeEvent, useState } from 'react';
 
 export default function App() {
+  const [prompt, setPrompt] = useState<string>('');
+  const [response, setResponse] = useState<string>('');
+
+  const handlePromptChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    console.log(e.target.value);
+    setPrompt(e.target.value);
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLButtonElement>) => {
+    setResponse('');
+    console.log('hello');
+    if (!prompt) {
+      return;
+    }
+
+    console.log('sending prompt to', import.meta.env.VITE_API_URL);
+
+    const eventSource = new EventSource(
+      `${import.meta.env.VITE_API_URL}/chat?model=gemini-1.5-flash`
+    );
+
+    eventSource.onmessage = (e: MessageEvent) => {
+      console.log(e.data);
+      const responseBlock = JSON.parse(e.data);
+      if (!responseBlock) {
+        return;
+      }
+      const text = responseBlock['text'];
+      if (text) {
+        setResponse((response) => `${response}${text}`);
+      }
+    };
+  };
+  console.log(response);
   return (
     <main className="w-screen px-20 py-10 ">
       <Card className="px-8 py-4 max-w-[1440px] mx-auto">
@@ -241,9 +277,10 @@ export default function App() {
                       <Textarea
                         placeholder="Write a tagline for an ice cream shop"
                         className="min-h-[400px] flex-1 p-4 md:min-h-[700px] lg:min-h-[700px]"
+                        onChange={handlePromptChange}
                       />
                       <div className="flex items-center space-x-2">
-                        <Button>Submit</Button>
+                        <Button onClick={handleSubmit}>Submit</Button>
                         <Button variant="secondary">
                           <span className="sr-only">Show history</span>
                           <CounterClockwiseClockIcon className="h-4 w-4" />
@@ -257,11 +294,12 @@ export default function App() {
                         <Textarea
                           placeholder="We're writing to [inset]. Congrats from OpenAI!"
                           className="h-full min-h-[300px] lg:min-h-[700px] xl:min-h-[700px]"
+                          onChange={handlePromptChange}
                         />
                         <div className="rounded-md border bg-muted"></div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Button>Submit</Button>
+                        <Button onClick={handleSubmit}>Submit</Button>
                         <Button variant="secondary">
                           <span className="sr-only">Show history</span>
                           <CounterClockwiseClockIcon className="h-4 w-4" />
@@ -279,6 +317,7 @@ export default function App() {
                               id="input"
                               placeholder="We is going to the market."
                               className="flex-1 lg:min-h-[580px]"
+                              onChange={handlePromptChange}
                             />
                           </div>
                           <div className="flex flex-col space-y-2">
@@ -289,10 +328,12 @@ export default function App() {
                             />
                           </div>
                         </div>
-                        <div className="mt-[21px] min-h-[400px] rounded-md border bg-muted lg:min-h-[700px]" />
+                        <div className="mt-[21px] min-h-[400px] rounded-md border bg-muted lg:min-h-[700px] p-3">
+                          <Markdown>{response}</Markdown>
+                        </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Button>Submit</Button>
+                        <Button onClick={handleSubmit}>Submit</Button>
                         <Button variant="secondary">
                           <span className="sr-only">Show history</span>
                           <CounterClockwiseClockIcon className="h-4 w-4" />

@@ -1,8 +1,10 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/anmho/prism/scope"
 	"io"
 	"log"
 	"log/slog"
@@ -57,6 +59,11 @@ func modelFromString(modelName string) Model {
 		return UnsetModel
 	}
 }
+
+type ResponseBlock struct {
+	Text string `json:"text"`
+}
+
 func handleChatCompletions(openaiClient *openai.Client, googleClient *genai.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -104,7 +111,20 @@ func handleChatCompletions(openaiClient *openai.Client, googleClient *genai.Clie
 
 				fmt.Println("Number of response candidates: ", len(resp.Candidates))
 				for _, part := range resp.Candidates[0].Content.Parts {
-					fmt.Fprintf(w, "data: %s\n\n", part)
+
+					switch p := part.(type) {
+					case genai.Text:
+						block := ResponseBlock{
+							Text: string(p),
+						}
+
+						b, err := json.Marshal(block)
+						if err != nil {
+							scope.GetLogger().Error("serializing text", slog.Any("err", err))
+							continue
+						}
+						fmt.Fprintf(w, "data: %s\n\n", string(b))
+					}
 
 					w.(http.Flusher).Flush()
 				}
