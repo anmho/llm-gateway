@@ -30,23 +30,39 @@ import { ChangeEvent, useState } from 'react';
 export default function App() {
   const [prompt, setPrompt] = useState<string>('');
   const [response, setResponse] = useState<string>('');
+  const [instructPrompt, setInstructPrompt] = useState<string>('');
 
   const handlePromptChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    console.log(e.target.value);
+    console.log(prompt, e.target.value);
     setPrompt(e.target.value);
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLButtonElement>) => {
-    setResponse('');
-    console.log('hello');
+    e.preventDefault();
+
+    console.log('sending prompt to', import.meta.env.VITE_API_URL);
+    const model = 'gemini-1.5-flash';
+
+    const data = {
+      prompt,
+      instructions: {
+        role: 'system',
+        prompt: instructPrompt,
+      },
+    };
+
+    console.log('data', data);
+
     if (!prompt) {
       return;
     }
 
-    console.log('sending prompt to', import.meta.env.VITE_API_URL);
+    setResponse('');
 
     const eventSource = new EventSource(
-      `${import.meta.env.VITE_API_URL}/chat?model=gemini-1.5-flash`
+      `${
+        import.meta.env.VITE_API_URL
+      }/chat?model=${model}&data=${JSON.stringify(data)}`
     );
 
     eventSource.onmessage = (e: MessageEvent) => {
@@ -60,6 +76,12 @@ export default function App() {
         setResponse((response) => `${response}${text}`);
       }
     };
+  };
+
+  const handleInstructPromptChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    console.log(prompt, e.target.value);
+    setInstructPrompt(e.target.value);
+    setPrompt(e.target.value);
   };
   console.log(response);
   return (
@@ -82,7 +104,7 @@ export default function App() {
             </div>
           </div>
           <Separator />
-          <Tabs defaultValue="complete" className="flex-1">
+          <Tabs defaultValue="edit" className="flex-1">
             <div className="container h-full py-6">
               <div className="grid h-full items-stretch gap-6 md:grid-cols-[1fr_200px]">
                 <div className="flex-col space-y-4 sm:flex md:order-2">
@@ -277,6 +299,7 @@ export default function App() {
                       <Textarea
                         placeholder="Write a tagline for an ice cream shop"
                         className="min-h-[400px] flex-1 p-4 md:min-h-[700px] lg:min-h-[700px]"
+                        value={prompt + response}
                         onChange={handlePromptChange}
                       />
                       <div className="flex items-center space-x-2">
@@ -325,6 +348,7 @@ export default function App() {
                             <Textarea
                               id="instructions"
                               placeholder="Fix the grammar."
+                              onChange={handleInstructPromptChange}
                             />
                           </div>
                         </div>

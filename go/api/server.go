@@ -60,6 +60,16 @@ func modelFromString(modelName string) Model {
 	}
 }
 
+type PromptInstructions struct {
+	Role        string `json:"role"`
+	Instruction string `json:"instructions"`
+}
+
+type PromptData struct {
+	Prompt       string `json:"prompt"`
+	Instructions PromptInstructions
+}
+
 type ResponseBlock struct {
 	Text string `json:"text"`
 }
@@ -82,10 +92,19 @@ func handleChatCompletions(openaiClient *openai.Client, googleClient *genai.Clie
 		Feel free to suggest specific themes for each day (e.g., a "Star Wars" day in Galaxy's Edge), and include any seasonal events or limited-time experiences happening during their visit.
 		`
 
+		var promptData PromptData
+		err := json.Unmarshal([]byte(r.URL.Query().Get("data")), &promptData)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		prompt = promptData.Prompt
+		slog.Info("parsing llm prompt data", slog.Any("promptData", promptData))
+
 		modelName := r.URL.Query().Get("model")
 		modelType := modelFromString(modelName)
 
-		slog.Info("handling chat compmletion", slog.String("model", modelName))
+		slog.Info("handling chat completion", slog.String("model", modelName))
 
 		ctx := r.Context()
 
