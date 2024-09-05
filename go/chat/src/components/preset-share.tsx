@@ -1,4 +1,4 @@
-import { CopyIcon } from '@radix-ui/react-icons';
+import { CopyIcon, Share2Icon } from '@radix-ui/react-icons';
 
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -9,7 +9,9 @@ export function PresetShare() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="secondary">Share</Button>
+        <Button variant="secondary">
+          <Share2Icon />
+        </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[520px]">
         <div className="flex flex-col space-y-2 text-center sm:text-left">
