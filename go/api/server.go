@@ -26,7 +26,7 @@ func MakeServer(openaiClient *openai.Client, googleClient *genai.Client) http.Ha
 	})
 	mux.HandleFunc("GET /api/chat", handleChatCompletions(openaiClient, googleClient))
 	mux.Handle("GET /", http.FileServer(http.Dir("./chat/dist")))
-	mux.HandleFunc("/api/events", eventsHandler)
+	mux.HandleFunc("GET /api/events", eventsHandler)
 
 	return mux
 }
